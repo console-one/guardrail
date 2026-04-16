@@ -1,0 +1,35 @@
+{
+  "name": "@console-one/guardrail",
+  "version": "0.1.0",
+  "description": "Declarative temporal constraint evaluation for API authorization. Identity-keyed resource budgets with automatic dependency discovery and atomic transactional commit.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "smoke": "node --enable-source-maps dist/smoke.js"
+  },
+  "keywords": [
+    "authorization",
+    "rate-limit",
+    "constraint",
+    "policy",
+    "transactional",
+    "temporal",
+    "declarative",
+    "reactive",
+    "dependency-graph"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}
