@@ -1,7 +1,7 @@
-import { Constrainable } from '../constraints/constraint';
-import { Unit } from '../constraints/unit';
-import { LimitBuilderExtension } from './limit';
-import { ResourceRelationBuilder } from './resourcerelation';
+import { Constrainable } from '../constraints/constraint.js';
+import { Unit } from '../constraints/unit.js';
+import { LimitBuilderExtension } from './limit.js';
+import { ResourceRelationBuilder } from './resourcerelation.js';
 
 export class GranularitySpecifier {
   terms: string[];

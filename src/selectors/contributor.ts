@@ -1,6 +1,6 @@
-import { Queue } from '../primitives/queue';
-import { Selectable } from './selectable';
-import { SelectorSet } from './selectorset';
+import { Queue } from '../primitives/queue.js';
+import { Selectable } from './selectable.js';
+import { SelectorSet } from './selectorset.js';
 
 // A Contributor is any node that can add itself — and its transitive
 // dependencies — to a SelectorSet. Every vertex in the reactive graph

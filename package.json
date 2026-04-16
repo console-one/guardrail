@@ -2,17 +2,34 @@
   "name": "@console-one/guardrail",
   "version": "0.1.0",
   "description": "Declarative temporal constraint evaluation for API authorization. Identity-keyed resource budgets with automatic dependency discovery and atomic transactional commit.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/console-one/guardrail.git"
+  },
+  "bugs": {
+    "url": "https://github.com/console-one/guardrail/issues"
+  },
+  "homepage": "https://github.com/console-one/guardrail#readme",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
-    "src",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run clean && npm run build && npm run smoke",
     "smoke": "node --enable-source-maps dist/smoke.js"
   },
   "keywords": [
@@ -26,10 +43,11 @@
     "reactive",
     "dependency-graph"
   ],
-  "license": "UNLICENSED",
-  "private": true,
+  "author": "Andrew Chalmers",
+  "license": "MIT",
   "devDependencies": {
     "typescript": "^5.4.0",
+    "vitest": "^1.6.0",
     "@types/node": "^20.0.0"
   }
 }

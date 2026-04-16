@@ -1,7 +1,7 @@
-import { AssessableJSON } from '../vendor/assessable';
-import { ContractPolicyType } from '../constraints/contracttype';
-import { SelectorSet } from '../selectors/selectorset';
-import { LimitBuilder } from './limit';
+import { AssessableJSON } from '../vendor/assessable/index.js';
+import { ContractPolicyType } from '../constraints/contracttype.js';
+import { SelectorSet } from '../selectors/selectorset.js';
+import { LimitBuilder } from './limit.js';
 
 // Entry point for the fluent contract DSL.
 //

@@ -3,11 +3,11 @@ import {
   constructContractPolicyTests,
   createCommitID,
   permissionsApplicator
-} from '../constraints/authhelpers';
-import { ContractPolicyType } from '../constraints/contracttype';
-import { MetricDao } from '../metric-dao/interface';
-import { Scope } from './scope';
-import { SelectorSet } from '../selectors/selectorset';
+} from '../constraints/authhelpers.js';
+import { ContractPolicyType } from '../constraints/contracttype.js';
+import { MetricDao } from '../metric-dao/interface.js';
+import { Scope } from './scope.js';
+import { SelectorSet } from '../selectors/selectorset.js';
 
 // Top-level API gate. Wraps a request handler with the constraint
 // pipeline: request arrives → matching policy selected → constraints

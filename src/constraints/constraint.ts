@@ -1,16 +1,16 @@
-import { listContribution } from '../selectors/contributor';
-import { ResourceRelation } from './resourcerelation';
-import { SelectorSet } from '../selectors/selectorset';
-import { Submetric } from './submetric';
-import { Translation } from '../selectors/translation';
-import { Unit } from './unit';
+import { listContribution } from '../selectors/contributor.js';
+import { ResourceRelation } from './resourcerelation.js';
+import { SelectorSet } from '../selectors/selectorset.js';
+import { Submetric } from './submetric.js';
+import { Translation } from '../selectors/translation.js';
+import { Unit } from './unit.js';
 import {
   updateToDependentSet,
   getNextValue,
   getPartition,
   getValue,
   toName
-} from './authhelpers';
+} from './authhelpers.js';
 
 // Unbound form: declarative, serializable, not yet wired into any
 // SelectorSet. Produced by the contract builder and held inside a

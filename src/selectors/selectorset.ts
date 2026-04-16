@@ -1,4 +1,4 @@
-import { Selectable } from './selectable';
+import { Selectable } from './selectable.js';
 
 // The SelectorSet is the dependency graph. Every node is indexed three
 // ways — by name, by selector path, and by composite key — so lookups

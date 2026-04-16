@@ -1,5 +1,5 @@
-import { Contributor, listContribution } from './contributor';
-import { SelectorSet } from './selectorset';
+import { Contributor, listContribution } from './contributor.js';
+import { SelectorSet } from './selectorset.js';
 
 // A Selectable is a named vertex in the reactive dependency graph. It
 // names a value and knows how to extract that value from some source

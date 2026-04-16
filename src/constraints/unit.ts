@@ -1,5 +1,5 @@
-import { SelectorSet } from '../selectors/selectorset';
-import { Submetric } from './submetric';
+import { SelectorSet } from '../selectors/selectorset.js';
+import { Submetric } from './submetric.js';
 
 // A Unit is the template form of a metric observation: "the `set`
 // value, partitioned by `per` dimensions". It's data — declarable,

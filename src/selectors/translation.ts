@@ -1,4 +1,4 @@
-import { Selectable, Selector } from './selectable';
+import { Selectable, Selector } from './selectable.js';
 
 // A computed vertex. Its value is derived from its child selectables
 // via the selectorApplicator function. The execution layer wires each

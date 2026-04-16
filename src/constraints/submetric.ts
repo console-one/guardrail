@@ -1,9 +1,9 @@
-import { listContribution } from '../selectors/contributor';
-import { InputMap } from '../primitives/inputset';
-import { Selectable } from '../selectors/selectable';
-import { SelectorSet } from '../selectors/selectorset';
-import { Translation } from '../selectors/translation';
-import { updateToDependentSet } from './authhelpers';
+import { listContribution } from '../selectors/contributor.js';
+import { InputMap } from '../primitives/inputset.js';
+import { Selectable } from '../selectors/selectable.js';
+import { SelectorSet } from '../selectors/selectorset.js';
+import { Translation } from '../selectors/translation.js';
+import { updateToDependentSet } from './authhelpers.js';
 
 // A bound, executable Unit. Extends Translation — fires when all its
 // `per` dimensions AND its `set` value have resolved. On fire:

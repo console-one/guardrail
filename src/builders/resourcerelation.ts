@@ -2,9 +2,9 @@ import {
   ResourceRelation,
   ResourceRelationType,
   ResourceRelations
-} from '../constraints/resourcerelation';
-import { GranularitySpecifier } from './granularity';
-import { LimitBuilder } from './limit';
+} from '../constraints/resourcerelation.js';
+import { GranularitySpecifier } from './granularity.js';
+import { LimitBuilder } from './limit.js';
 
 export class ResourceRelationBuilder {
   limit: number = 0;

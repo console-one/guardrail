@@ -6,7 +6,7 @@ import {
   Translation,
   SelectorSet,
   lookslike
-} from './index';
+} from './index.js';
 
 // Smoke test — exercises the full happy path: declare a contract,
 // compile it, gate a request, commit. Must exit 0 to pass.

@@ -1,8 +1,8 @@
-import { Queue } from '../primitives/queue';
-import { StandardRapidTestGenerator, AssessableJSON } from '../vendor/assessable';
-import { ContractPolicyType } from './contracttype';
-import { SelectorSet } from '../selectors/selectorset';
-import { Submetric } from './submetric';
+import { Queue } from '../primitives/queue.js';
+import { StandardRapidTestGenerator, AssessableJSON } from '../vendor/assessable/index.js';
+import { ContractPolicyType } from './contracttype.js';
+import { SelectorSet } from '../selectors/selectorset.js';
+import { Submetric } from './submetric.js';
 
 // Compile time: for each policy in the contract, bind every
 // Constrainable → Constraint, register its inputs/outputs in a fresh

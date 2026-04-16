@@ -1,8 +1,8 @@
-import { AssessableJSON, and, or } from '../vendor/assessable';
-import { Constrainable } from '../constraints/constraint';
-import { ContractPolicyType } from '../constraints/contracttype';
-import { ContractBuilder } from './contract';
-import { ResourceRelationBuilder } from './resourcerelation';
+import { AssessableJSON, and, or } from '../vendor/assessable/index.js';
+import { Constrainable } from '../constraints/constraint.js';
+import { ContractPolicyType } from '../constraints/contracttype.js';
+import { ContractBuilder } from './contract.js';
+import { ResourceRelationBuilder } from './resourcerelation.js';
 
 // Returned after `.as(name)` — lets you chain more constraints onto the
 // same policy via `.andSet(...)`, start an alternative policy via

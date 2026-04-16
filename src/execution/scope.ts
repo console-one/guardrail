@@ -1,7 +1,7 @@
-import { Eventual } from '../primitives/eventual';
-import { InputMap } from '../primitives/inputset';
-import { MetricDao } from '../metric-dao/interface';
-import { SelectorSet } from '../selectors/selectorset';
+import { Eventual } from '../primitives/eventual.js';
+import { InputMap } from '../primitives/inputset.js';
+import { MetricDao } from '../metric-dao/interface.js';
+import { SelectorSet } from '../selectors/selectorset.js';
 
 // The per-request evaluation context. Holds:
 //   - an event bus keyed by name, each topic backed by an Eventual

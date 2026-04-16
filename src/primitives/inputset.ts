@@ -1,4 +1,4 @@
-import { Eventual } from './eventual';
+import { Eventual } from './eventual.js';
 
 // Declares N required inputs by name and fires its subscribers exactly
 // once — when the Nth input arrives — with the full aggregated row.

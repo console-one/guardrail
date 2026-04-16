@@ -1,6 +1,6 @@
-import { AssessableJSON } from '../vendor/assessable';
-import { Constrainable } from './constraint';
-import { SelectorSet } from '../selectors/selectorset';
+import { AssessableJSON } from '../vendor/assessable/index.js';
+import { Constrainable } from './constraint.js';
+import { SelectorSet } from '../selectors/selectorset.js';
 
 // A named bundle of Constrainables plus the AssessableJSON that decides
 // which requests the policy applies to. Multiple policies can coexist

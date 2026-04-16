@@ -3,7 +3,7 @@ import {
   ReadCallbackMap,
   CommitObservable,
   CommitCallbacks
-} from '../metric-dao/interface';
+} from '../metric-dao/interface.js';
 
 // In-memory reference implementation. Good for tests, smoke runs, and
 // local development. Not suitable for multi-process workloads — there's
