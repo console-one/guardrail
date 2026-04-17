@@ -152,34 +152,9 @@ src/
         └── index.ts            # minimal structural JSON matcher
 ```
 
-## What was intentionally dropped during extraction
+## Known tech debt
 
-The following lived in or around `core/observables/` in the source but were left out of the standalone package because they carried heavy coupling to the parent monorepo. They can be added back as optional subpath exports later.
-
-- **`core/clients/redis/cli`** — The original `C1APIAuthorizer.create()` / `.singleton()` factories built a Redis-backed DAO by default via `cli()`. Dropped: consumers now inject a `MetricDao` implementation explicitly. The in-memory adapter is in `src/adapters/memory-metric-dao.ts`; production deployments implement the interface against whatever durable store they use. Re-adding a Redis adapter would be a ~50-line subpath module.
-- **`core/process/workflow`** — Only referenced from an empty `metric.ts` stub in the source. Nothing to port.
-- **`core/generics/globallogger`** — `Constraint` called `GlobalLogger.DefaultLogger()` for debug output. The legacy logger pulls in filesystem and transport layers. Dropped in favour of silence; add a pluggable logger in a follow-up if you need runtime tracing.
-- **`core/generics/queue`** — Legacy `Queue` class, inlined as `src/primitives/queue.ts`. The legacy class had more surface than what guardrail uses; the inlined version is ~15 lines.
-- **`core/testing/*`** (`AssessableJSON`, `lookslike`, `and`, `or`, `StandardRapidTestGenerator`) — Full legacy assessable framework (~800 lines of pluggable operators, reporters, and classifiers). Vendored as `src/vendor/assessable/index.ts` (~100 lines) covering the four operators guardrail actually uses: `IS`, `IS_TYPE`, `EXISTS`, `IS_IN`. If you need the full upstream, `@console-one/assessable` is a separate extraction.
-- **Empty source files**: `observable.ts`, `observed.ts`, `metric.ts`, `generics/subscription.ts` were 0 bytes at the source commit. The design documentation referred to a "Subscription" primitive but the live primitive is `Eventual`; `Subscription` was either renamed or never filled in. Nothing to port.
-- **`policies/openai/generate.ts`** — Example policy file in the source, but only stub imports (`JobFactory`, `InputMap`) and an empty body. Not useful as a template; the DSL example in the `smoke.ts` file replaces it.
-- **`test/contractvalidation.ts`** — The legacy in-tree test used a custom `validator.expect(...).toLookLike(...)` harness bound to the parent monorepo's test runner. The port is in `src/smoke.ts` using plain assertions, which is the extraction playbook's preferred bar.
-
-## Behavioural corrections carried over from the source
-
-- **`ResourceRelationType.LESS_THAN_OR_EQUAL_TO`** — The legacy `resourcerelation.ts` declared both `LESS_THAN` and `LESS_THAN_OR_EQUAL_TO` with the same predicate `(a, b) => a < b`. Fixed in the port to use `<=` for LTE.
-- **`Unit.toSubmetric`** — The legacy threw a bare `Error("Undefined selectables!")` preceded by a `console.error(this)` dump. The port throws descriptive errors naming the missing `per` or `set` reference.
-- **`Scope.debugMode`** — Legacy defaulted to `true`, which produced noisy `console.log` output on every request. Dropped the field; no debug output.
-- **`C1APIAuthorizer.create(metricDao)`** — The legacy had `singleton()` and `create()` no-arg factories that silently built a Redis-backed DAO. The port requires an injected DAO; there is no default. Pass `new MemoryMetricDao()` for local development.
-- **Scheduling in `createAPIWrapper`** — The legacy used `process.nextTick(...)` to drive `execRead`. The port uses a bounded `setTimeout(0)` drain loop that re-runs `execRead` until the query table is stable, because the `process.nextTick` timing assumed a cascade order that doesn't always hold under microtask interleaving. Bounded to 8 rounds to prevent infinite loops.
-
-## Known tech debt (carried over from the source)
-
-- **`Scope` is a god object.** At ~380 lines it conflates pub/sub, metric I/O, and transactional staging. A clean rewrite would split it into `PubSub` + `Barrier` + `TxStage`. Left intact during extraction to avoid behavioural drift.
-- **Dead `'submetric'` case in `Scope.attach()`.** `Submetric` extends `Translation`, so its `sourceName` is `'translation'` — the `'submetric'` case never fires in practice. Kept for parity with the source.
+- **`Scope` is a god object.** At ~380 lines it conflates pub/sub, metric I/O, and transactional staging. A clean rewrite would split it into `PubSub` + `Barrier` + `TxStage`.
+- **Dead `'submetric'` case in `Scope.attach()`.** `Submetric` extends `Translation`, so its `sourceName` is `'translation'` — the `'submetric'` case never fires in practice.
 - **`InputSetCollector` has no timeout or error propagation.** If a metric read hangs, the collector hangs forever. Production use should wrap the DAO with a timeout.
 - **`Eventual` has no unsubscribe.** Listeners are additive; a long-lived `Scope` registering listeners in a loop leaks. Fine for per-request use where the Scope is discarded after commit.
-
-## Origin
-
-Extracted on 2026-04-14 from `console-one-workspace/web-server/server/src/core/observables/` at commit `2962816ed487df0a3c029401b94d7db32fc27ff2` (branch `flounder`). Source files were copied, not symlinked, and all cross-boundary imports were rewritten to point at `vendor/` or replaced with injected interfaces. The parent repo was not modified.
