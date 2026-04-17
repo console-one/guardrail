@@ -1,6 +1,6 @@
 {
   "name": "@console-one/guardrail",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Declarative temporal constraint evaluation for API authorization. Identity-keyed resource budgets with automatic dependency discovery and atomic transactional commit.",
   "repository": {
     "type": "git",
@@ -46,8 +46,8 @@
   "author": "Andrew Chalmers",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
-    "vitest": "^1.6.0",
-    "@types/node": "^20.0.0"
+    "vitest": "^1.6.0"
   }
 }
