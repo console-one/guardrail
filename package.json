@@ -1,6 +1,6 @@
 {
   "name": "@console-one/guardrail",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Declarative temporal constraint evaluation for API authorization. Identity-keyed resource budgets with automatic dependency discovery and atomic transactional commit.",
   "repository": {
     "type": "git",
