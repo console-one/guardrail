@@ -1,5 +1,6 @@
 import { Queue } from '../primitives/queue.js';
 import { StandardRapidTestGenerator, AssessableJSON } from '../vendor/assessable/index.js';
+import { Scope } from '../execution/scope.js';
 import { ContractPolicyType } from './contracttype.js';
 import { SelectorSet } from '../selectors/selectorset.js';
 import { Submetric } from './submetric.js';
@@ -90,31 +91,31 @@ export const toName = (lim: number | Submetric) => {
 
 // -- request lifecycle helpers --
 
-export const createCommitID = async (requestScope: any) => {
+export const createCommitID = async (requestScope: Scope) => {
   return `${requestScope.request.uuid}:commit#${new Date().getTime()}`;
 };
 
 export const attachConstraintHandlers = (
-  requestScope: any,
+  requestScope: Scope,
   commitID: string,
   executeMethod: (args: any) => any,
   rejectMethod: (...args: any[]) => any
 ) => {
   requestScope.subscribe('break', (...data: any[]) => {
-    if (requestScope.vars?.state !== 'SHORTED') requestScope.publish('cancel', ...data);
-    requestScope.vars.state = 'SHORTED';
+    if (requestScope.controller.state !== 'SHORTED') requestScope.publish('cancel', ...data);
+    requestScope.controller.state = 'SHORTED';
     rejectMethod(requestScope.request);
   });
 
   requestScope.subscribe('success', (...observations: any[]) => {
     const observed = observations[0];
-    if (requestScope.vars.constraints.has(observed.name)) {
-      requestScope.vars.constraints.delete(observed.name);
-      const wasNonZero = requestScope.vars.remaining > 0;
-      requestScope.vars.remaining -= 1;
+    if (requestScope.controller.constraints.has(observed.name)) {
+      requestScope.controller.constraints.delete(observed.name);
+      const wasNonZero = requestScope.controller.remaining > 0;
+      requestScope.controller.remaining -= 1;
       requestScope.stage(commitID, observed);
 
-      if (requestScope.vars.remaining === 0 && wasNonZero) {
+      if (requestScope.controller.remaining === 0 && wasNonZero) {
         requestScope
           .execCommit(commitID)
           .then(async () => executeMethod(requestScope.request))

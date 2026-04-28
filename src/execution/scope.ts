@@ -3,6 +3,16 @@ import { InputMap } from '../primitives/inputset.js';
 import { MetricDao } from '../metric-dao/interface.js';
 import { SelectorSet } from '../selectors/selectorset.js';
 
+// Per-request lifecycle state. The authorizer initializes one of these
+// with the set of constraint names we expect to fire and a counter; the
+// constraint handlers in authhelpers tick them as success/break events
+// arrive, and the request commits when `remaining` hits zero.
+export interface RequestController {
+  state: 'ANALYSIS' | 'SHORTED';
+  constraints: Set<string>;
+  remaining: number;
+}
+
 // The per-request evaluation context. Holds:
 //   - an event bus keyed by name, each topic backed by an Eventual
 //     (many-to-many, replay-all)
@@ -10,11 +20,10 @@ import { SelectorSet } from '../selectors/selectorset.js';
 //     via the injected MetricDao
 //   - staged metric commits, flushed atomically on execCommit()
 //
-// `Scope` ported from the source as a single class. The 380-line
-// god-object nature is known tech debt: it conflates pub/sub, metric
-// I/O, and transactional staging. A future rewrite should split it
-// into `PubSub`, `Barrier`, and `TxStage`. Not done in this pass to
-// avoid introducing behavioural drift.
+// God-object territory: a clean split would break this into PubSub
+// (the Eventual map), Barrier (the read batcher and unblock counters),
+// and TxStage (the staged commit accumulator). Left as a single class
+// for now — splitting is a structural change, not a typing one.
 
 const toNumber = (val: any): number => {
   return typeof val === 'number' ? val : Array.isArray(val) ? toNumber(val[0]) : Number(val);
@@ -39,36 +48,34 @@ function unpack(arr: any, collector: (a: any, b: any) => any): any {
 }
 
 export class Scope {
-  each: { [key: string]: Eventual<any> };
   request: any;
-  collectors: any[];
-  vars: any;
-  cache: any;
-  factory: MetricDao;
-  openMetricRequests: any;
-  stagedMetricCommits: any;
-  blocked: any;
+  controller: RequestController;
 
-  constructor(request: any, factory: MetricDao, vars: any) {
-    this.each = {};
-    this.collectors = [];
-    this.setup('items');
+  private each: { [key: string]: Eventual<any> };
+  private readonly factory: MetricDao;
+  private openMetricRequests: any;
+  private stagedMetricCommits: any;
+  private blocked: any;
+
+  constructor(request: any, factory: MetricDao, controller: RequestController) {
+    this.each = { items: new Eventual() };
     this.request = request;
-    this.vars = vars ?? {};
-    this.cache = {};
+    this.controller = controller;
     this.stagedMetricCommits = {};
     this.openMetricRequests = {};
     this.factory = factory;
     this.blocked = {};
   }
 
-  async getInfo(key: string): Promise<any> {
-    if (!this.factory.getInfo) return { key };
-    const resp = await this.factory.getInfo(this.cache, key, () => ({ key }));
-    return typeof resp === 'string' ? { key: resp } : resp;
+  // Number of metric-read categories registered for `uuid` whose flush
+  // has not yet been issued. Used by the authorizer's drainReads loop
+  // as a stability signal (round-over-round equality means settled).
+  pendingReadCategoryCount(uuid: string): number {
+    const queries = this.openMetricRequests[uuid]?.queries;
+    return queries ? Object.keys(queries).length : 0;
   }
 
-  async setupkey(req: string, category: string, key: string, cb: any): Promise<void> {
+  private async setupkey(req: string, category: string, key: string, cb: any): Promise<void> {
     if (this.openMetricRequests[req].queries[category][key] === undefined) {
       let toResolve: any;
       let toReject: any;
@@ -271,20 +278,12 @@ export class Scope {
     }
   }
 
-  setup(name: string, ...value: any[]) {
-    if (this.each[name] === undefined) {
-      this.each[name] = new Eventual();
-    }
-    if (value.length > 0) this.each[name].setItem(...value);
-  }
-
   attach(selectorSet: SelectorSet) {
     return selectorSet.byIndex.reduce(
       (counts: any, selector) => {
         this.publish('keys', selector.name);
         switch (selector.sourceName) {
-          case 'translation':
-          case 'translate': {
+          case 'translation': {
             const translationReqs = new InputMap((selector.selectables ?? []).map(s => s.name));
             const setCollector = translationReqs.createSetCollector();
 
@@ -304,16 +303,6 @@ export class Scope {
             this.subscribe('items', setCollector.publish);
             break;
           }
-          case 'submetric':
-            // Dead branch in the source: Submetric extends Translation
-            // so its sourceName is 'translation'. Kept for parity.
-            this.getMetric(
-              this.request.uuid,
-              selector.selectorPath,
-              selector.name,
-              selector.selectorApplicator
-            ).then((...result: any[]) => this.publish(selector.name, ...result));
-            break;
           case 'request':
             Promise.resolve((selector.selectorApplicator as any).apply(this, [this.request])).then(
               (selectorValue: any) => {

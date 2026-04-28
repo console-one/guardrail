@@ -9,24 +9,29 @@
 // and a value published before any subscribers exist still fires every
 // listener that registers afterward. This eliminates the class of timing
 // bugs you get when a downstream subscriber races an upstream publisher.
+//
+// Generic parameter `TArgs` is the tuple of arguments setItem accepts
+// (and listeners receive). Default `unknown[]` means heterogeneous
+// values; consumers wanting to lock down a topic to a specific shape
+// can supply a tuple type, e.g. `Eventual<[string, number]>`.
 
-export class Eventual<Item = any> {
-  values: any[];
-  listeners: ((...cb: any[]) => void)[];
+export class Eventual<TArgs extends readonly unknown[] = unknown[]> {
+  values: TArgs[];
+  listeners: Array<(...args: TArgs) => void>;
 
-  constructor(...values: any[]) {
+  constructor(...values: TArgs[]) {
     this.values = values;
     this.listeners = [];
   }
 
-  setItem(...item: any) {
+  setItem(...item: TArgs) {
     this.values.push(item);
     for (let i = 0; i < this.listeners.length; i++) {
       this.listeners[i](...item);
     }
   }
 
-  setListener(fn: (...cb: any[]) => void) {
+  setListener(fn: (...args: TArgs) => void) {
     for (const value of this.values) {
       fn(...value);
     }
@@ -34,8 +39,10 @@ export class Eventual<Item = any> {
   }
 }
 
-export const toEventual = (cb: (publish: (...data: any[]) => void) => any): Eventual => {
-  const eventual = new Eventual();
+export const toEventual = <TArgs extends readonly unknown[] = unknown[]>(
+  cb: (publish: (...data: TArgs) => void) => void
+): Eventual<TArgs> => {
+  const eventual = new Eventual<TArgs>();
   cb(eventual.setItem.bind(eventual));
   return eventual;
 };

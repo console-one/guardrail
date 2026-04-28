@@ -1,8 +1,8 @@
 import { listContribution } from '../selectors/contributor.js';
 import { ResourceRelation } from './resourcerelation.js';
+import { Selectable } from '../selectors/selectable.js';
 import { SelectorSet } from '../selectors/selectorset.js';
 import { Submetric } from './submetric.js';
-import { Translation } from '../selectors/translation.js';
 import { Unit } from './unit.js';
 import {
   updateToDependentSet,
@@ -33,52 +33,60 @@ export class Constrainable {
   }
 }
 
-// Bound form. Extends Translation so it participates in the reactive
-// graph — fires when its value Submetric (and limit Submetric, if any)
-// have resolved. On fire:
+// Bound form. Vertex peer of Translation — both have sourceName
+// 'translation' so Scope.attach handles them through the translation
+// branch (InputSetCollector wires the value Submetric and any limit
+// Submetric; applicator fires when both have resolved).
+//
+// On fire:
 //   projected = value + delta
 //   outcome   = relation(projected, limit)
 //   publish('success', obs) | publish('break', obs)
 //
-// A Constraint does not "check" anything. It's a vertex that fires when
-// its inputs arrive and declares an outcome to the Scope's event bus.
-// The Scope listens, counts successes, commits or rejects.
-export class Constraint extends Translation {
+// The constraint does not "check" anything. It's a vertex that fires
+// when its inputs arrive and declares an outcome to the Scope's event
+// bus. The Scope listens, counts successes, commits or rejects.
+export class Constraint implements Selectable {
+  readonly name: string;
+  readonly sourceName = 'translation';
+  readonly selectorPath: string;
+  readonly selectorApplicator: (inputsPromise: any) => Promise<any>;
+  readonly selectables: Selectable[];
+
   constructor(
     public value: Submetric,
     public relation: ResourceRelation,
     public limit: number | Submetric,
     public alias: string
   ) {
-    super(
-      `${toName(value)}:${relation.name}:${toName(limit)}`,
-      async function (this: any, inputsPromise: any) {
-        return Promise.all(inputsPromise).then(async (inputs: any[]) => {
-          const appliedLimit = typeof limit === 'number' ? limit : getValue(await inputs[1]);
-          const appliedDelta = getNextValue(await inputs[0]);
-          const partitionedInputs = getPartition(await inputs[0]);
-          const result = {
-            name: `${toName(value)}:${relation.name}:${toName(limit)}`,
-            granularity: value.per,
-            partition: partitionedInputs,
-            outcome: relation.predicate(appliedDelta, appliedLimit),
-            trace: inputs[0],
-            value: appliedDelta
-          };
+    this.name = `${toName(value)}:${relation.name}:${toName(limit)}`;
+    this.selectorPath = this.name;
+    this.selectables = [
+      ...(typeof value === 'number' ? [] : [value as Selectable]),
+      ...(typeof limit === 'number' ? [] : [limit as Selectable])
+    ];
 
-          if (result.outcome) this.publish('success', result);
-          else this.publish('break', result);
+    const constraintName = this.name;
+    this.selectorApplicator = async function (this: any, inputsPromise: any) {
+      return Promise.all(inputsPromise).then(async (inputs: any[]) => {
+        const appliedLimit = typeof limit === 'number' ? limit : getValue(await inputs[1]);
+        const appliedDelta = getNextValue(await inputs[0]);
+        const partitionedInputs = getPartition(await inputs[0]);
+        const result = {
+          name: constraintName,
+          granularity: value.per,
+          partition: partitionedInputs,
+          outcome: relation.predicate(appliedDelta, appliedLimit),
+          trace: inputs[0],
+          value: appliedDelta
+        };
 
-          return result;
-        });
-      },
-      ...(typeof value === 'number' ? [] : [value]),
-      ...(typeof limit === 'number' ? [] : [limit])
-    );
-  }
+        if (result.outcome) this.publish('success', result);
+        else this.publish('break', result);
 
-  get name(): string {
-    return `${toName(this.value)}:${this.relation.name}:${toName(this.limit)}`;
+        return result;
+      });
+    };
   }
 
   update(selectorSet: SelectorSet) {

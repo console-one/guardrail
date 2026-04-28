@@ -7,6 +7,11 @@ import { Eventual } from './eventual.js';
 // This is the synchronization barrier at every Translation vertex. When
 // a translation depends on three selectors, an InputSetCollector waits
 // for all three to publish before the translation's applicator fires.
+//
+// The row is heterogeneous (different inputs have different types) and
+// passed to subscribers positionally in the canonical column order. We
+// type the value channel as `unknown` to keep callers honest at the
+// boundary; collectors that want a tighter shape can wrap subscribe.
 
 export class InputMap {
   public readonly map: { [key: string]: number };
@@ -35,14 +40,16 @@ export class InputMap {
   }
 }
 
+export type InputSetResult = { trace: number[]; data: unknown[] };
+
 export class InputSetCollector {
-  private values: Array<[any, number]>;
+  private values: Array<[unknown, number]>;
   private awaiting: Set<string>;
   private awaitingCount: number;
   private map: { [key: string]: number };
   private columns: string[];
-  private result: { trace: number[]; data: any[] } | undefined;
-  private eventual: Eventual<any>;
+  private result: InputSetResult | undefined;
+  private eventual: Eventual<unknown[]>;
   public readonly name?: string;
   public done: boolean;
 
@@ -59,12 +66,12 @@ export class InputSetCollector {
     this.awaiting = new Set([...Object.keys(this.map)]);
     this.awaitingCount = this.values.length;
     this.result = undefined;
-    this.eventual = new Eventual();
+    this.eventual = new Eventual<unknown[]>();
     this.publish = this.publish.bind(this);
     this.done = false;
   }
 
-  private tryDequeue() {
+  private tryDequeue(): InputSetResult | undefined {
     if (!this.done && this.awaitingCount < 1) {
       this.result = {
         trace: this.values.map(v => v[1]),
@@ -75,7 +82,7 @@ export class InputSetCollector {
     return this.result;
   }
 
-  publish(paramValue: { key: string; value: any }) {
+  publish(paramValue: { key: string; value: unknown }): InputSetResult | undefined {
     if (!this.done && this.awaiting.has(paramValue.key)) {
       this.awaitingCount -= 1;
       this.awaiting.delete(paramValue.key);
@@ -85,7 +92,7 @@ export class InputSetCollector {
     return undefined;
   }
 
-  subscribe(cb: (...data: any[]) => void) {
+  subscribe(cb: (...data: unknown[]) => void) {
     if (this.result !== undefined) {
       cb(...this.result.data);
     } else {

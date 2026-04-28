@@ -62,7 +62,6 @@ export class C1APIAuthorizer {
 
       const requestScope = new Scope(request, this.metricDao, {
         state: 'ANALYSIS',
-        staged: {},
         constraints: outputSet,
         remaining: outputSet.size
       });
@@ -107,8 +106,7 @@ export class C1APIAuthorizer {
         let prevCategories = -1;
         for (let round = 0; round < 8; round += 1) {
           await new Promise(r => setTimeout(r, 0));
-          const queries = requestScope.openMetricRequests[request.uuid]?.queries ?? {};
-          const categoryCount = Object.keys(queries).length;
+          const categoryCount = requestScope.pendingReadCategoryCount(request.uuid);
           if (categoryCount === 0 && round > 0) break;
           if (categoryCount === prevCategories && round > 0) break;
           prevCategories = categoryCount;

@@ -2,34 +2,36 @@ import { Contributor, listContribution } from './contributor.js';
 import { SelectorSet } from './selectorset.js';
 
 // A Selectable is a named vertex in the reactive dependency graph. It
-// names a value and knows how to extract that value from some source
-// (the incoming request, a computed translation, or a stored metric).
+// names a value and knows how to extract that value from some source.
 //
-// Fields:
+// Required fields — every vertex in the graph carries these:
 //   - name              graph identity; event bus route key
-//   - sourceName        "request" | "translation" | "submetric"
+//   - sourceName        'request' or 'translation' (Scope.attach branches on this)
 //   - selectorPath      the field/path the extractor reads from
 //   - selectorApplicator the extractor function or bound operation
 //
-// Selectors compose via parent/child relationships so a sub-selector
-// can project off a parent without duplicating extraction logic.
+// Optional fields — Selector-style chain plumbing. Selector implements
+// these to support sub-selector composition (`.as()`, `.select()`,
+// `.from()`). Submetric and Constraint are vertex peers that implement
+// Selectable without the chain methods — they don't compose chains,
+// they're computed leaves of the graph.
 export interface Selectable<K = any> {
   selectorPath: string;
   sourceName: string;
   selectorApplicator: K;
-  as(val: string): Selectable<K>;
-  select(selectorPath: string, structure: Structure): Selectable<K>;
-  from(selector: Selectable<K>): Selectable<K>;
-  ranges: Selectable[];
-  byName: { [key: string]: number };
   name: string;
+  selectables?: Selectable<K>[];
+  as?(val: string): Selectable<K>;
+  select?(selectorPath: string, structure: Structure): Selectable<K>;
+  from?(selector: Selectable<K>): Selectable<K>;
+  ranges?: Selectable[];
+  byName?: { [key: string]: number };
   toJSON?: () => any;
   alias?: string;
   parent?: Selectable<K>;
   parentAlias?: string;
   parentRef?: Selectable<K> | string;
   resolved?: boolean;
-  selectables?: Selectable<K>[];
 }
 
 export class Selector<K = any> implements Selectable<K>, Contributor {

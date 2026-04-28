@@ -85,7 +85,7 @@ node dist/smoke.js
 
 At compile time, the contract's declarative policies are compiled into a reactive evaluation graph:
 
-1. **`Constrainable → Constraint`** — every `.set().toLessThan().per()` clause becomes a `Constrainable` (unbound), which binds to a fresh `SelectorSet` at compile time to produce a `Constraint` (bound). The constraint extends `Translation`, so it becomes a vertex in the dependency graph.
+1. **`Constrainable → Constraint`** — every `.set().toLessThan().per()` clause becomes a `Constrainable` (unbound), which binds to a fresh `SelectorSet` at compile time to produce a `Constraint` (bound). The constraint is a vertex peer of `Translation` (same `sourceName`, same `Selectable` shape) so it sits in the dependency graph alongside selectors and translations.
 2. **BFS dependency discovery** — `constraint.listContribution(selectorSet)` walks the graph breadth-first from the constraint, registering every transitive dependency (selectors, translations, submetric reads). You declare "tokens < 1000 per user per day" and the BFS figures out it needs the `tokens` translation, the `user` selector, the `day` selector, and the metric read. Add a new dimension and the next compile picks it up automatically.
 3. **Scope merge** — at request time, every matching constraint contributes its minimal scope, and the authorizer merges them into one final `SelectorSet` per request. Merges dedupe on composite key `(name, selectorPath, sourceName)`, so overlapping subgraphs combine stably.
 
@@ -154,7 +154,6 @@ src/
 
 ## Known tech debt
 
-- **`Scope` is a god object.** At ~380 lines it conflates pub/sub, metric I/O, and transactional staging. A clean rewrite would split it into `PubSub` + `Barrier` + `TxStage`.
-- **Dead `'submetric'` case in `Scope.attach()`.** `Submetric` extends `Translation`, so its `sourceName` is `'translation'` — the `'submetric'` case never fires in practice.
+- **`Scope` is a god object.** It conflates pub/sub, metric I/O, and transactional staging. A clean rewrite would split it into `PubSub` + `Barrier` + `TxStage`.
 - **`InputSetCollector` has no timeout or error propagation.** If a metric read hangs, the collector hangs forever. Production use should wrap the DAO with a timeout.
 - **`Eventual` has no unsubscribe.** Listeners are additive; a long-lived `Scope` registering listeners in a loop leaks. Fine for per-request use where the Scope is discarded after commit.

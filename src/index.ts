@@ -44,7 +44,7 @@ export { ResourceRelationBuilder } from './builders/resourcerelation.js';
 export { GranularitySpecifier } from './builders/granularity.js';
 
 // Execution
-export { Scope } from './execution/scope.js';
+export { Scope, RequestController } from './execution/scope.js';
 export { C1APIAuthorizer } from './execution/authorizer.js';
 
 // Persistence boundary
