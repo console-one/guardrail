@@ -50,6 +50,7 @@ export { C1APIAuthorizer } from './execution/authorizer.js';
 // Persistence boundary
 export { MetricDao, ReadCallback, ReadCallbackRecord, ReadCallbackMap, CommitObservable, CommitCallbacks } from './metric-dao/interface.js';
 export { MemoryMetricDao } from './adapters/memory-metric-dao.js';
+export { FilesystemMetricDao, type FilesystemMetricDaoOpts } from './adapters/filesystem-metric-dao.js';
 
 // Vendored structural pattern matching
 export { lookslike, and, or, StandardRapidTestGenerator, AssessableJSON, Requirement } from './vendor/assessable/index.js';
