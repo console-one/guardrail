@@ -45,7 +45,7 @@
   "author": "Andrew Chalmers",
   "license": "MIT",
   "dependencies": {
-    "@console-one/assessable": "file:../assessable",
+    "@console-one/assessable": "^0.1.3",
     "@console-one/source": "file:../source"
   },
   "devDependencies": {
