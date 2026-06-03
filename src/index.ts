@@ -47,6 +47,18 @@ export { GranularitySpecifier } from './builders/granularity.js';
 export { Scope, RequestController } from './execution/scope.js';
 export { C1APIAuthorizer } from './execution/authorizer.js';
 
+// Budget lifecycle (reserve / confirm / rollback) — additive surface on top
+// of the constraint + MetricDao machinery. Fail-closed; per-constraint Scope.
+export {
+  BudgetGate,
+  type BudgetConstraintSpec,
+  type BudgetGateOptions,
+  type Reservation,
+  type ReserveResult,
+  type ConfirmCorrection,
+  type RejectReason
+} from './budget/budget-gate.js';
+
 // Persistence boundary
 export { MetricDao, ReadCallback, ReadCallbackRecord, ReadCallbackMap, CommitObservable, CommitCallbacks } from './metric-dao/interface.js';
 export { MemoryMetricDao } from './adapters/memory-metric-dao.js';
